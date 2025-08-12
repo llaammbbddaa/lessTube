@@ -8,7 +8,7 @@ import argparse
 from pathlib import Path
 
 # Configuration
-BASE_DIR = '/home/arshilegorky/lessYoutube'
+BASE_DIR = '/home/USER/lessYoutube'
 VIDEO_DIR = os.path.join(BASE_DIR, 'downloaded_videos')
 DOWNLOADED_VIDEOS_FILE = os.path.join(BASE_DIR, 'downloaded_videos.json')
 
