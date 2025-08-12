@@ -1,0 +1,218 @@
+#!/usr/bin/env python3
+import os
+import sys
+import json
+import random
+import subprocess
+import argparse
+from pathlib import Path
+
+# Configuration
+BASE_DIR = '/home/arshilegorky/lessYoutube'
+VIDEO_DIR = os.path.join(BASE_DIR, 'downloaded_videos')
+DOWNLOADED_VIDEOS_FILE = os.path.join(BASE_DIR, 'downloaded_videos.json')
+
+def get_all_videos():
+    """Get all videos from the downloaded_videos directory."""
+    videos = []
+    if not os.path.exists(VIDEO_DIR):
+        return videos
+    
+    # Walk through all directories and find video files with info.json
+    for root, dirs, files in os.walk(VIDEO_DIR):
+        for file in files:
+            if file.endswith('.info.json'):
+                info_path = os.path.join(root, file)
+                video_path = info_path.replace('.info.json', '')
+                
+                # Check if the actual video file exists
+                video_extensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov']
+                actual_video_path = None
+                for ext in video_extensions:
+                    if os.path.exists(video_path + ext):
+                        actual_video_path = video_path + ext
+                        break
+                
+                if actual_video_path:
+                    try:
+                        with open(info_path, 'r') as f:
+                            info = json.load(f)
+                        
+                        # Get channel name from the directory path
+                        channel_name = os.path.basename(root)
+                        
+                        videos.append({
+                            'title': info.get('title', 'Unknown Title'),
+                            'channel': channel_name,
+                            'path': actual_video_path,
+                            'id': info.get('id', ''),
+                            'upload_date': info.get('upload_date', '')
+                        })
+                    except Exception as e:
+                        print(f"Error reading {info_path}: {e}")
+    
+    return videos
+
+def list_videos(videos, channel_filter=None):
+    """List all videos, optionally filtered by channel."""
+    if channel_filter:
+        videos = [v for v in videos if channel_filter.lower() in v['channel'].lower()]
+    
+    if not videos:
+        print("No videos found.")
+        return
+    
+    print(f"Found {len(videos)} videos:")
+    for i, video in enumerate(videos, 1):
+        print(f"{i:3d}. {video['title']}")
+        print(f"      Channel: {video['channel']}")
+        print(f"      Date: {video['upload_date']}")
+        print()
+
+def search_videos(videos, search_term):
+    """Search videos by title."""
+    search_term = search_term.lower()
+    matching_videos = [v for v in videos if search_term in v['title'].lower()]
+    
+    if not matching_videos:
+        print(f"No videos found matching '{search_term}'.")
+        return
+    
+    print(f"Found {len(matching_videos)} videos matching '{search_term}':")
+    for i, video in enumerate(matching_videos, 1):
+        print(f"{i:3d}. {video['title']}")
+        print(f"      Channel: {video['channel']}")
+        print(f"      Date: {video['upload_date']}")
+        print()
+
+def play_random_video(videos):
+    """Play a random video."""
+    if not videos:
+        print("No videos available to play.")
+        return
+    
+    video = random.choice(videos)
+    print(f"Playing: {video['title']}")
+    print(f"Channel: {video['channel']}")
+    
+    # Try to play the video with VLC
+    try:
+        result = subprocess.run(['vlc', video['path']], check=True)
+    except FileNotFoundError:
+        # VLC not found, try mpv as fallback
+        try:
+            subprocess.run(['mpv', video['path']], check=True)
+        except FileNotFoundError:
+            print("Error: Neither VLC nor mpv player found. Please install VLC or mpv to play videos.")
+            print("For VLC:")
+            print("  On Ubuntu/Debian: sudo apt install vlc")
+            print("  On Fedora: sudo dnf install vlc")
+            print("  On macOS: brew install vlc")
+            print("For mpv:")
+            print("  On Ubuntu/Debian: sudo apt install mpv")
+            print("  On Fedora: sudo dnf install mpv")
+            print("  On macOS: brew install mpv")
+        except subprocess.CalledProcessError:
+            print("Error playing video with mpv.")
+    except subprocess.CalledProcessError:
+        # VLC encountered an error, try mpv as fallback
+        try:
+            subprocess.run(['mpv', video['path']], check=True)
+        except FileNotFoundError:
+            print("Error: Neither VLC nor mpv player found. Please install VLC or mpv to play videos.")
+            print("For VLC:")
+            print("  On Ubuntu/Debian: sudo apt install vlc")
+            print("  On Fedora: sudo dnf install vlc")
+            print("  On macOS: brew install vlc")
+            print("For mpv:")
+            print("  On Ubuntu/Debian: sudo apt install mpv")
+            print("  On Fedora: sudo dnf install mpv")
+            print("  On macOS: brew install mpv")
+        except subprocess.CalledProcessError:
+            print("Error playing video with mpv.")
+
+def play_video_by_index(videos, index):
+    """Play a video by its index number."""
+    if not videos:
+        print("No videos available to play.")
+        return
+    
+    if index < 1 or index > len(videos):
+        print(f"Invalid video index. Please choose a number between 1 and {len(videos)}.")
+        return
+    
+    # Get the video at the specified index (1-based indexing)
+    video = videos[index - 1]
+    print(f"Playing: {video['title']}")
+    print(f"Channel: {video['channel']}")
+    
+    # Try to play the video with VLC
+    try:
+        result = subprocess.run(['vlc', video['path']], check=True)
+    except FileNotFoundError:
+        # VLC not found, try mpv as fallback
+        try:
+            subprocess.run(['mpv', video['path']], check=True)
+        except FileNotFoundError:
+            print("Error: Neither VLC nor mpv player found. Please install VLC or mpv to play videos.")
+            print("For VLC:")
+            print("  On Ubuntu/Debian: sudo apt install vlc")
+            print("  On Fedora: sudo dnf install vlc")
+            print("  On macOS: brew install vlc")
+            print("For mpv:")
+            print("  On Ubuntu/Debian: sudo apt install mpv")
+            print("  On Fedora: sudo dnf install mpv")
+            print("  On macOS: brew install mpv")
+        except subprocess.CalledProcessError:
+            print("Error playing video with mpv.")
+    except subprocess.CalledProcessError:
+        # VLC encountered an error, try mpv as fallback
+        try:
+            subprocess.run(['mpv', video['path']], check=True)
+        except FileNotFoundError:
+            print("Error: Neither VLC nor mpv player found. Please install VLC or mpv to play videos.")
+            print("For VLC:")
+            print("  On Ubuntu/Debian: sudo apt install vlc")
+            print("  On Fedora: sudo dnf install vlc")
+            print("  On macOS: brew install vlc")
+            print("For mpv:")
+            print("  On Ubuntu/Debian: sudo apt install mpv")
+            print("  On Fedora: sudo dnf install mpv")
+            print("  On macOS: brew install mpv")
+        except subprocess.CalledProcessError:
+            print("Error playing video with mpv.")
+
+def main():
+    parser = argparse.ArgumentParser(description='Search and play downloaded YouTube videos')
+    parser.add_argument('-r', '--random', action='store_true', help='Play a random video')
+    parser.add_argument('-s', '--search', help='Search videos by title')
+    parser.add_argument('-l', '--list', nargs='?', const='all', help='List videos (optionally from a specific channel)')
+    parser.add_argument('-p', '--play', type=int, help='Play a video by its index number')
+    parser.add_argument('path', nargs='?', default='.', help='Path to search in (default: current directory)')
+    
+    # If no arguments provided, show help
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+    
+    args = parser.parse_args()
+    
+    # Get all videos
+    videos = get_all_videos()
+    
+    if args.random:
+        play_random_video(videos)
+    elif args.search:
+        search_videos(videos, args.search)
+    elif args.play:
+        play_video_by_index(videos, args.play)
+    elif args.list:
+        if args.list == 'all':
+            list_videos(videos)
+        else:
+            list_videos(videos, args.list)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
