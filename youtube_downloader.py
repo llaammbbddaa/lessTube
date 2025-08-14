@@ -7,9 +7,10 @@ import sys
 from datetime import datetime, timedelta
 
 # Configuration
-CSV_FILE = 'subs.csv'
-VIDEO_DIR = 'downloaded_videos'
-DOWNLOADED_VIDEOS_FILE = 'downloaded_videos.json'
+BASE_DIR = '/home/arshilegorky/lessYoutube/'
+CSV_FILE = BASE_DIR + 'subs.csv'
+VIDEO_DIR = BASE_DIR + 'downloaded_videos'
+DOWNLOADED_VIDEOS_FILE = BASE_DIR + 'downloaded_videos.json'
 MAX_VIDEOS_PER_CHANNEL = 1  # Limit to avoid downloading too many videos at once
 
 def load_downloaded_videos():
