@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 CSV_FILE = 'subs.csv'
 VIDEO_DIR = 'downloaded_videos'
 DOWNLOADED_VIDEOS_FILE = 'downloaded_videos.json'
-MAX_VIDEOS_PER_CHANNEL = 5  # Limit to avoid downloading too many videos at once
+MAX_VIDEOS_PER_CHANNEL = 1  # Limit to avoid downloading too many videos at once
 
 def load_downloaded_videos():
     """Load the list of already downloaded videos from a JSON file."""
@@ -39,6 +39,7 @@ def read_channels_from_csv():
 
 def is_video_recent(upload_date_str):
     """Check if a video was uploaded within the last 2 days."""
+    return True
     try:
         # Parse the upload date (format: YYYYMMDD)
         upload_date = datetime.strptime(upload_date_str, '%Y%m%d')
@@ -48,6 +49,8 @@ def is_video_recent(upload_date_str):
         return upload_date >= two_days_ago
     except ValueError:
         # If we can't parse the date, assume it's not recent
+        print(upload_data_str)
+        print("return false date")
         return False
 
 def download_latest_videos(channel, downloaded_videos):
