@@ -13,46 +13,65 @@ VIDEO_DIR = os.path.join(BASE_DIR, 'downloaded_videos')
 DOWNLOADED_VIDEOS_FILE = os.path.join(BASE_DIR, 'downloaded_videos.json')
 
 def get_all_videos():
-    """Get all videos from the downloaded_videos directory."""
+    """Get all videos from the downloaded_videos directory including misc folder."""
     videos = []
     if not os.path.exists(VIDEO_DIR):
         return videos
     
-    # Walk through all directories and find video files with info.json
+    # Supported video extensions
+    video_extensions = ('.mp4', '.webm', '.mkv', '.avi', '.mov')
+    
+    # Walk through all directories and find video files
     for root, dirs, files in os.walk(VIDEO_DIR):
         for file in files:
+            # Skip info.json files - we'll handle them through video files
             if file.endswith('.info.json'):
-                info_path = os.path.join(root, file)
-                video_path = info_path.replace('.info.json', '')
+                continue
                 
-                # Check if the actual video file exists
-                video_extensions = ['.mp4', '.webm', '.mkv', '.avi', '.mov']
-                actual_video_path = None
-                for ext in video_extensions:
-                    if os.path.exists(video_path + ext):
-                        actual_video_path = video_path + ext
-                        break
+            # Process video files
+            if file.lower().endswith(video_extensions):
+                video_path = os.path.join(root, file)
+                base_name = os.path.splitext(file)[0]
+                info_path = os.path.join(root, base_name + '.info.json')
+                channel_name = os.path.basename(root)
                 
-                if actual_video_path:
+                # Handle videos with metadata
+                if os.path.exists(info_path):
                     try:
                         with open(info_path, 'r') as f:
                             info = json.load(f)
                         
-                        # Get channel name from the directory path
-                        channel_name = os.path.basename(root)
-                        
                         videos.append({
                             'title': info.get('title', 'Unknown Title'),
                             'channel': channel_name,
-                            'path': actual_video_path,
+                            'path': video_path,
                             'id': info.get('id', ''),
                             'upload_date': info.get('upload_date', '')
                         })
                     except Exception as e:
                         print(f"Error reading {info_path}: {e}")
+                        # Fallback to filename as title
+                        videos.append({
+                            'title': base_name,
+                            'channel': channel_name,
+                            'path': video_path,
+                            'id': '',
+                            'upload_date': ''
+                        })
+                
+                # Handle miscellaneous videos without metadata
+                else:
+                    videos.append({
+                        'title': base_name,  # Use filename as title
+                        'channel': channel_name,
+                        'path': video_path,
+                        'id': '',
+                        'upload_date': ''
+                    })
     
     return videos
 
+    
 def list_videos(videos, channel_filter=None):
     """List all videos, optionally filtered by channel."""
     if channel_filter:
