@@ -12,6 +12,19 @@ BASE_DIR = '/home/arshilegorky/lessYoutube'
 VIDEO_DIR = os.path.join(BASE_DIR, 'downloaded_videos')
 DOWNLOADED_VIDEOS_FILE = os.path.join(BASE_DIR, 'downloaded_videos.json')
 
+# New helper function for sorting videos by upload date
+def sort_videos_by_upload_date(videos):
+    """Sort videos by upload date (newest first), videos without date at the end."""
+    # Separate videos with and without upload dates
+    with_dates = [v for v in videos if v['upload_date']]
+    without_dates = [v for v in videos if not v['upload_date']]
+    
+    # Sort videos with dates in descending order (newest first)
+    with_dates.sort(key=lambda x: x['upload_date'], reverse=True)
+    
+    # Combine lists (videos with dates first, then without)
+    return with_dates + without_dates
+
 def get_all_videos():
     """Get all videos from the downloaded_videos directory including misc folder."""
     videos = []
@@ -81,6 +94,9 @@ def list_videos(videos, channel_filter=None):
         print("No videos found.")
         return
     
+    # Sort videos by upload date before listing
+    videos = sort_videos_by_upload_date(videos)  # <-- ADDED SORTING
+
     print(f"Found {len(videos)} videos:")
     for i, video in enumerate(videos, 1):
         print(f"{i:3d}. {video['title']}")
@@ -97,6 +113,9 @@ def search_videos(videos, search_term):
         print(f"No videos found matching '{search_term}'.")
         return
     
+    # Sort matching videos by upload date
+    matching_videos = sort_videos_by_upload_date(matching_videos)  # <-- ADDED SORTING
+
     print(f"Found {len(matching_videos)} videos matching '{search_term}':")
     for i, video in enumerate(matching_videos, 1):
         print(f"{i:3d}. {video['title']}")
@@ -161,6 +180,7 @@ def play_video_by_index(videos, index):
         return
     
     # Get the video at the specified index (1-based indexing)
+    videos = sort_videos_by_upload_date(videos)
     video = videos[index - 1]
     print(f"Playing: {video['title']}")
     print(f"Channel: {video['channel']}")
